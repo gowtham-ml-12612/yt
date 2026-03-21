@@ -1,4 +1,4 @@
-export default function LaunchScreen({ onChat, onFlash }) {
+export default function LaunchScreen({ onChat, onFlash, onBall }) {
   return (
     <div className="ls-shell">
       <div className="ls-grid">
@@ -11,6 +11,11 @@ export default function LaunchScreen({ onChat, onFlash }) {
         <button className="ls-app" onClick={onFlash}>
           <div className="ls-icon ls-icon--cards">🗂</div>
           <span className="ls-label">Flashcards</span>
+        </button>
+
+        <button className="ls-app" onClick={onBall}>
+          <div className="ls-icon ls-icon--ball">⚽</div>
+          <span className="ls-label">Ball Arena</span>
         </button>
 
       </div>
