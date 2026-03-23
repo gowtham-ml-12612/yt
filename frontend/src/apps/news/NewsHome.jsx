@@ -3,19 +3,19 @@ import { useState, useRef } from 'react';
 // ---------------------------------------------------------------------------
 // Constants — channel / handle / category colours are fixed
 // ---------------------------------------------------------------------------
-const CHANNEL   = 'Swen Reports';
-const HANDLE    = '@swenreports';
+const CHANNEL = 'Swen Reports';
+const HANDLE = '@swenreports';
 const CAT_COLORS = {
-  Technology:      '#2a7bff',
-  Politics:        '#e63946',
-  Sports:          '#39d353',
-  Business:        '#ff9f43',
-  Science:         '#a855f7',
-  Health:          '#06b6d4',
-  World:           '#f59e0b',
+  Technology: '#2a7bff',
+  Politics: '#e63946',
+  Sports: '#39d353',
+  Business: '#ff9f43',
+  Science: '#a855f7',
+  Health: '#06b6d4',
+  World: '#f59e0b',
   'Gold & Silver': '#d4a017',
-  Movies:          '#e040fb',
-  India:           '#ff6b00',
+  Movies: '#e040fb',
+  India: '#ff6b00',
 };
 
 // ---------------------------------------------------------------------------
@@ -72,9 +72,9 @@ const SAMPLE_STORIES = [
   },
   {
     category: 'Gold & Silver',
-    gold24k:     86950,
-    silver1kg:   95800,
-    trendGold:   'up',
+    gold24k: 86950,
+    silver1kg: 95800,
+    trendGold: 'up',
     trendSilver: 'down',
     history: [
       { date: '21 Mar', gold: 86500, silver: 96200 },
@@ -97,14 +97,14 @@ function normaliseStory(s) {
     sub: s.sub || '',
     body: Array.isArray(s.body) ? s.body : s.body ? [s.body] : [],
     facts: Array.isArray(s.facts) ? s.facts : [],
-    ...(Array.isArray(s.rates)   ? { rates:       s.rates }       : {}),
-    ...(s.gold24k   != null      ? { gold24k:     s.gold24k }     : {}),
-    ...(s.gold22k   != null      ? { gold22k:     s.gold22k }     : {}),
-    ...(s.silver1kg != null      ? { silver1kg:   s.silver1kg }   : {}),
-    ...(s.trend        != null   ? { trend:       s.trend }       : {}),
-    ...(s.trendGold    != null   ? { trendGold:   s.trendGold }   : {}),
-    ...(s.trendSilver  != null   ? { trendSilver: s.trendSilver } : {}),
-    ...(Array.isArray(s.history) ? { history:     s.history }     : {}),
+    ...(Array.isArray(s.rates) ? { rates: s.rates } : {}),
+    ...(s.gold24k != null ? { gold24k: s.gold24k } : {}),
+    ...(s.gold22k != null ? { gold22k: s.gold22k } : {}),
+    ...(s.silver1kg != null ? { silver1kg: s.silver1kg } : {}),
+    ...(s.trend != null ? { trend: s.trend } : {}),
+    ...(s.trendGold != null ? { trendGold: s.trendGold } : {}),
+    ...(s.trendSilver != null ? { trendSilver: s.trendSilver } : {}),
+    ...(Array.isArray(s.history) ? { history: s.history } : {}),
   };
 }
 
@@ -129,11 +129,11 @@ function buildConfig(storyTexts) {
 // ---------------------------------------------------------------------------
 export default function NewsHome({ onLaunch, onBack }) {
   const [storyInputs, setStoryInputs] = useState(['']);
-  const [error, setError]   = useState('');
+  const [error, setError] = useState('');
   const [images, setImages] = useState({});
-  const fileInputRef  = useRef(null);
+  const fileInputRef = useRef(null);
   const [pendingSlot, setPendingSlot] = useState('');
-  const [slotInput,   setSlotInput]   = useState('');
+  const [slotInput, setSlotInput] = useState('');
 
   // Story box helpers
   function updateStory(idx, val) {

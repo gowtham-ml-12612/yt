@@ -6224,14 +6224,16 @@ img.ball-result-flag.ball-team-image {
   padding: 0 24px;
   animation: nwsSlideIn 0.45s ease both;
 }
+
 .nws-intro-logo {
   width: 96px;
   height: 96px;
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 20px;
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.45);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.45);
 }
+
 .nws-intro-ch {
   font-family: 'Oswald', sans-serif;
   font-size: 22px;
@@ -6241,6 +6243,7 @@ img.ball-result-flag.ball-team-image {
   line-height: 1;
   margin-bottom: 14px;
 }
+
 .nws-intro-line {
   width: 48px;
   height: 2px;
@@ -6248,6 +6251,7 @@ img.ball-result-flag.ball-team-image {
   margin-bottom: 14px;
   opacity: 0.8;
 }
+
 .nws-intro-tag {
   font-family: 'Oswald', sans-serif;
   font-size: 9px;
@@ -6259,6 +6263,7 @@ img.ball-result-flag.ball-team-image {
   border-radius: 2px;
   margin-bottom: 22px;
 }
+
 .nws-intro-meta {
   display: flex;
   align-items: center;
@@ -6266,14 +6271,24 @@ img.ball-result-flag.ball-team-image {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
 }
-.nws-intro-date { color: rgba(255,255,255,0.45); }
-.nws-intro-sep  { color: rgba(255,255,255,0.20); }
-.nws-intro-count { font-weight: 600; }
+
+.nws-intro-date {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.nws-intro-sep {
+  color: rgba(255, 255, 255, 0.20);
+}
+
+.nws-intro-count {
+  font-weight: 600;
+}
 
 .nws-idle-icon {
   font-size: 2.4rem;
   opacity: 0.3;
 }
+
 .nws-idle-label {
   font-size: 0.83rem;
   color: rgba(255, 255, 255, 0.28);
@@ -6291,29 +6306,33 @@ img.ball-result-flag.ball-team-image {
   padding: 0 24px;
   animation: nwsSlideIn 0.5s ease both;
 }
+
 .nws-endcard-logo {
   width: 128px;
   height: 128px;
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 18px;
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.5);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.5);
 }
+
 .nws-endcard-channel {
   font-family: 'Oswald', sans-serif;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 4px;
-  color: rgba(255,255,255,0.70);
+  color: rgba(255, 255, 255, 0.70);
   margin-bottom: 16px;
 }
+
 .nws-endcard-divider {
   width: 40px;
   height: 2px;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 2px;
   margin-bottom: 20px;
 }
+
 .nws-endcard-cta {
   font-family: 'Oswald', sans-serif;
   font-size: 42px;

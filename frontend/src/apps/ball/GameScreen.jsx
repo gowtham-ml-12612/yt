@@ -1193,11 +1193,11 @@ function BounceDebugPanel({ label, color, events }) {
   const text = events.length === 0
     ? '(no bounces yet)'
     : events.map((e) =>
-        `t=${e.tick} pos=(${e.x},${e.y}) vBefore=(${e.vxBefore},${e.vyBefore}) vn=${e.vn} spd=${e.spd} ang=${e.angleDeg}°${e.stuck ? ' ⚠️STUCK' : ''}`
-      ).join('\n');
+      `t=${e.tick} pos=(${e.x},${e.y}) vBefore=(${e.vxBefore},${e.vyBefore}) vn=${e.vn} spd=${e.spd} ang=${e.angleDeg}°${e.stuck ? ' ⚠️STUCK' : ''}`
+    ).join('\n');
 
   function handleCopy() {
-    navigator.clipboard?.writeText(text).catch(() => {});
+    navigator.clipboard?.writeText(text).catch(() => { });
   }
 
   const stuckCount = events.filter((e) => e.stuck).length;
