@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { getTeam, uiColor } from './teams.js';
-import { recordResult } from './ballStorage.js';
+import { getTeam, uiColor } from './iplTeams.js';
+import { recordResult } from './iplStorage.js';
 
 export default function ResultScreen({ matchConfig, homeScore, awayScore, onContinue, onHome }) {
   const { fixture, tournament, customTeams = null } = matchConfig;
@@ -78,7 +78,7 @@ export default function ResultScreen({ matchConfig, homeScore, awayScore, onCont
         <div className="ball-result-stage-note">
           {winner ? (
             <>
-              <span style={{ color: uiColor(winner) }}>{winner.flag} {winner.name}</span> {stageText[fixture.phase] || 'advance'}.
+              <span style={{ color: uiColor(winner) }}>{winner.name}</span> {stageText[fixture.phase] || 'advance'}.
             </>
           ) : 'Knockout matches cannot end in a draw.'}
         </div>
@@ -110,7 +110,11 @@ function PointsBadge({ team, pts }) {
   const labels = { 3: 'Win', 1: 'Draw', 0: 'Loss' };
   return (
     <div className="ball-pts-badge" style={{ borderColor: uiColor(team) }}>
-      <span className="ball-pts-flag">{team.flag}</span>
+      <span className="ball-pts-flag">
+        {team.imageSrc
+          ? <img src={team.imageSrc} alt={team.name} style={{ width: 28, height: 28, objectFit: 'contain', verticalAlign: 'middle' }} />
+          : team.flag}
+      </span>
       <span className="ball-pts-val" style={{ color: uiColor(team) }}>{pts > 0 ? `+${pts}` : pts}</span>
       <span className="ball-pts-label">{labels[pts]}</span>
     </div>

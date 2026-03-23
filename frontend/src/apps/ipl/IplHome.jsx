@@ -1,22 +1,20 @@
 import { useState, useEffect } from 'react';
-import { TEAMS } from './teams.js';
+import { TEAMS } from './iplTeams.js';
 import {
   getAllTournaments, createTournament, deleteTournament,
   setActiveTournament, getActiveTournament, nextFixture,
-} from './ballStorage.js';
+} from './iplStorage.js';
 
-const PHASES = ['group', 'knockout', 'done'];
-
-export default function BallHome({ onStartMatch, onAutoTournament, onStartCustomMatch, onStartRoyaleMode, onBack }) {
+export default function IplHome({ onStartMatch, onAutoTournament, onStartCustomMatch, onStartRoyaleMode, onBack }) {
   const [tournaments, setTournaments] = useState([]);
   const [active, setActive] = useState(null);
   const [creating, setCreating] = useState(false);
   const [creatingCustom, setCreatingCustom] = useState(false);
-  const [tName, setTName] = useState('World Cup 2026');
+  const [tName, setTName] = useState('IPL 2026');
   const [selectedTeams, setSelectedTeams] = useState(TEAMS.map((team) => team.id));
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [customHomeName, setCustomHomeName] = useState('League A');
-  const [customAwayName, setCustomAwayName] = useState('League B');
+  const [customHomeName, setCustomHomeName] = useState('Team A');
+  const [customAwayName, setCustomAwayName] = useState('Team B');
   const [customHomeImage, setCustomHomeImage] = useState('');
   const [customAwayImage, setCustomAwayImage] = useState('');
 
@@ -36,7 +34,7 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
   function handleCreate(e) {
     e.preventDefault();
     if (selectedTeams.length < 2) return;
-    createTournament(tName.trim() || 'Tournament', selectedTeams, 'league');
+    createTournament(tName.trim() || 'IPL Tournament', selectedTeams, 'league');
     setCreating(false);
     reload();
   }
@@ -64,30 +62,24 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
     const matchId = `custom-${Date.now()}`;
     const home = {
       id: `${matchId}-home`,
-      name: customHomeName.trim() || 'League A',
+      name: customHomeName.trim() || 'Team A',
       flag: '',
       imageSrc: customHomeImage,
-      color: '#ff5d73',
-      secondary: '#ffd1d9',
+      color: '#FF6B35',
+      secondary: '#FFD1B3',
       textColor: '#ffffff',
-      speed: 3.2,
-      mass: 1.0,
-      friction: 0.986,
-      agility: 0.17,
+      speed: 3.2, mass: 1.0, friction: 0.986, agility: 0.17,
       isCustom: true,
     };
     const away = {
       id: `${matchId}-away`,
-      name: customAwayName.trim() || 'League B',
+      name: customAwayName.trim() || 'Team B',
       flag: '',
       imageSrc: customAwayImage,
-      color: '#4da3ff',
-      secondary: '#d9ecff',
+      color: '#004BA0',
+      secondary: '#D1E8FF',
       textColor: '#ffffff',
-      speed: 3.2,
-      mass: 1.0,
-      friction: 0.986,
-      agility: 0.17,
+      speed: 3.2, mass: 1.0, friction: 0.986, agility: 0.17,
       isCustom: true,
     };
 
@@ -142,9 +134,9 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
         <button className="ball-back-btn" onClick={onBack}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
-        <span className="ball-header-title">⚽ Ball Arena</span>
+        <span className="ball-header-title">🏏 IPL Arena</span>
         <div className="ball-header-actions">
-          <button className="ball-new-btn ball-new-btn--ghost" onClick={onStartRoyaleMode}>🌍 Royale</button>
+          <button className="ball-new-btn ball-new-btn--ghost" onClick={onStartRoyaleMode}>🏟️ Royale</button>
           <button className="ball-new-btn ball-new-btn--ghost" onClick={() => setCreatingCustom(true)}>🖼️ Duel</button>
           <button className="ball-new-btn" onClick={() => setCreating(true)}>+ New</button>
         </div>
@@ -155,7 +147,7 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
         <div className="ball-section">
           <div className="ball-section-label">🏆 {active.name}</div>
 
-          {/* Standings / qualifiers */}
+          {/* Standings */}
           <div className="ball-table-wrap">
             <table className="ball-table">
               <thead>
@@ -170,8 +162,7 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
                     <tr key={row.teamId} className={i < (showBracket ? qualifiedCount : 2) ? 'ball-table-qualify' : ''}>
                       <td>{i + 1}</td>
                       <td>
-                        <span className="ball-table-flag">{team?.flag}</span>
-                        <span className="ball-table-name">{team?.name}</span>
+                        <TeamChip team={team} />
                       </td>
                       <td>{row.played}</td>
                       <td>{row.won}</td>
@@ -200,12 +191,12 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
               <div className="ball-next-label">{phaseLabel(fix.phase)}</div>
               <div className="ball-next-teams">
                 <div className="ball-next-team">
-                  <span className="ball-next-flag">{teamMap[fix.homeId]?.flag}</span>
+                  <TeamLogoSmall team={teamMap[fix.homeId]} />
                   <span>{teamMap[fix.homeId]?.name}</span>
                 </div>
                 <span className="ball-vs">VS</span>
                 <div className="ball-next-team">
-                  <span className="ball-next-flag">{teamMap[fix.awayId]?.flag}</span>
+                  <TeamLogoSmall team={teamMap[fix.awayId]} />
                   <span>{teamMap[fix.awayId]?.name}</span>
                 </div>
               </div>
@@ -221,8 +212,8 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
               {table[0] && (
                 <div className="ball-winner-announce">
                   {active.phase === 'done'
-                    ? <>🥇 <strong>{teamMap[active.championId]?.flag} {teamMap[active.championId]?.name}</strong> are the champions</>
-                    : <>🥇 <strong>{teamMap[table[0].teamId]?.flag} {teamMap[table[0].teamId]?.name}</strong> finished top of the group</>}
+                    ? <>🥇 <strong>{teamMap[active.championId]?.name}</strong> are the champions</>
+                    : <>🥇 <strong>{teamMap[table[0].teamId]?.name}</strong> finished top of the group</>}
                 </div>
               )}
             </div>
@@ -262,11 +253,11 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
       {/* Empty state */}
       {tournaments.length === 0 && !creating && (
         <div className="ball-empty">
-          <div className="ball-empty-icon">⚽</div>
+          <div className="ball-empty-icon">🏏</div>
           <div className="ball-empty-title">No tournaments yet</div>
-          <div className="ball-empty-sub">Create a tournament or start a quick image battle.</div>
+          <div className="ball-empty-sub">Create an IPL tournament or start a quick team battle.</div>
           <div className="ball-empty-actions">
-            <button className="ball-play-btn ball-play-btn--secondary" onClick={onStartRoyaleMode}>🌍 All Countries</button>
+            <button className="ball-play-btn ball-play-btn--secondary" onClick={onStartRoyaleMode}>🏟️ All Teams Royale</button>
             <button className="ball-play-btn ball-play-btn--secondary" onClick={() => setCreatingCustom(true)}>🖼️ Image Battle</button>
             <button className="ball-play-btn" onClick={() => setCreating(true)}>Create Tournament</button>
           </div>
@@ -277,40 +268,35 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
       {creating && (
         <div className="ball-modal-overlay" onClick={() => setCreating(false)}>
           <div className="ball-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="ball-modal-title">New Tournament</div>
+            <div className="ball-modal-title">New IPL Tournament</div>
             <form onSubmit={handleCreate}>
               <label className="ball-modal-label">Name</label>
               <input
                 className="ball-modal-input"
                 value={tName}
                 onChange={(e) => setTName(e.target.value)}
-                placeholder="World Cup 2026"
+                placeholder="IPL 2026"
               />
               <label className="ball-modal-label">
-                Select 2–15 teams <span className="ball-modal-hint">({selectedTeams.length} selected)</span>
+                Select 2–10 teams <span className="ball-modal-hint">({selectedTeams.length} selected)</span>
               </label>
               <div className="ball-team-grid">
                 {TEAMS.map((team) => (
                   <button
                     key={team.id}
                     type="button"
-                    className={`ball-team-chip ${selectedTeams.includes(team.id) ? 'ball-team-chip--on' : ''}`}
+                    className={`ball-team-chip ipl-team-chip ${selectedTeams.includes(team.id) ? 'ball-team-chip--on' : ''}`}
                     style={selectedTeams.includes(team.id) ? { background: team.color, color: team.textColor, borderColor: team.color } : {}}
                     onClick={() => toggleTeam(team.id)}
                   >
-                    {team.flag} {team.name}
+                    <IplTeamLogo team={team} size={18} />
+                    <span>{team.flag}</span>
                   </button>
                 ))}
               </div>
               <div className="ball-modal-actions">
                 <button type="button" className="ball-modal-cancel" onClick={() => setCreating(false)}>Cancel</button>
-                <button
-                  type="submit"
-                  className="ball-modal-create"
-                  disabled={selectedTeams.length < 2}
-                >
-                  Create
-                </button>
+                <button type="submit" className="ball-modal-create" disabled={selectedTeams.length < 2}>Create</button>
               </div>
             </form>
           </div>
@@ -320,7 +306,7 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
       {creatingCustom && (
         <div className="ball-modal-overlay" onClick={closeCustomModal}>
           <div className="ball-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="ball-modal-title">Image League Battle</div>
+            <div className="ball-modal-title">🏏 Image Team Battle</div>
             <form onSubmit={handleCreateCustomMatch}>
               <div className="ball-upload-grid">
                 <div className="ball-upload-card">
@@ -329,7 +315,7 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
                     className="ball-modal-input"
                     value={customHomeName}
                     onChange={(e) => setCustomHomeName(e.target.value)}
-                    placeholder="League A"
+                    placeholder="Team A"
                   />
                   <label className="ball-modal-label">Left Team Image</label>
                   <label className="ball-upload-drop">
@@ -349,7 +335,7 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
                     className="ball-modal-input"
                     value={customAwayName}
                     onChange={(e) => setCustomAwayName(e.target.value)}
-                    placeholder="League B"
+                    placeholder="Team B"
                   />
                   <label className="ball-modal-label">Right Team Image</label>
                   <label className="ball-upload-drop">
@@ -373,6 +359,41 @@ export default function BallHome({ onStartMatch, onAutoTournament, onStartCustom
         </div>
       )}
     </div>
+  );
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function IplTeamLogo({ team, size = 24 }) {
+  if (!team) return null;
+  return (
+    <img
+      src={team.imageSrc}
+      alt={team.flag}
+      width={size}
+      height={size}
+      style={{ objectFit: 'contain', borderRadius: 3, verticalAlign: 'middle' }}
+      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+    />
+  );
+}
+
+function TeamChip({ team }) {
+  if (!team) return null;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <IplTeamLogo team={team} size={20} />
+      <span className="ball-table-name">{team.name}</span>
+    </span>
+  );
+}
+
+function TeamLogoSmall({ team }) {
+  if (!team) return null;
+  return (
+    <span className="ball-next-flag">
+      <IplTeamLogo team={team} size={24} />
+    </span>
   );
 }
 
@@ -410,7 +431,7 @@ function KnockoutBracket({ fixtures, teamMap, championId }) {
             <div className="ball-bracket-title">Champion</div>
             <div className="ball-bracket-champion">
               <div className="ball-bracket-cup">🏆</div>
-              <div className="ball-bracket-name">{teamMap[championId]?.flag} {teamMap[championId]?.name}</div>
+              <div className="ball-bracket-name">{teamMap[championId]?.name}</div>
             </div>
           </div>
         )}
@@ -420,19 +441,27 @@ function KnockoutBracket({ fixtures, teamMap, championId }) {
 }
 
 function BracketFixture({ fix, teamMap }) {
-  const home = fix.homeId ? `${teamMap[fix.homeId]?.flag} ${teamMap[fix.homeId]?.name}` : fix.homeLabel;
-  const away = fix.awayId ? `${teamMap[fix.awayId]?.flag} ${teamMap[fix.awayId]?.name}` : fix.awayLabel;
+  const homeTeam = fix.homeId ? teamMap[fix.homeId] : null;
+  const awayTeam = fix.awayId ? teamMap[fix.awayId] : null;
+  const home = homeTeam ? homeTeam.name : fix.homeLabel;
+  const away = awayTeam ? awayTeam.name : fix.awayLabel;
   const homeWon = fix.played && fix.homeScore > fix.awayScore;
   const awayWon = fix.played && fix.awayScore > fix.homeScore;
 
   return (
     <div className={`ball-bracket-fixture ${fix.played ? 'ball-bracket-fixture--played' : ''}`}>
       <div className={`ball-bracket-teamline ${homeWon ? 'ball-bracket-teamline--win' : ''}`}>
-        <span>{home || 'TBD'}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          {homeTeam && <img src={homeTeam.imageSrc} alt={homeTeam.flag} width={14} height={14} style={{ objectFit: 'contain' }} onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
+          {home || 'TBD'}
+        </span>
         <strong>{fix.played ? fix.homeScore : '–'}</strong>
       </div>
       <div className={`ball-bracket-teamline ${awayWon ? 'ball-bracket-teamline--win' : ''}`}>
-        <span>{away || 'TBD'}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          {awayTeam && <img src={awayTeam.imageSrc} alt={awayTeam.flag} width={14} height={14} style={{ objectFit: 'contain' }} onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
+          {away || 'TBD'}
+        </span>
         <strong>{fix.played ? fix.awayScore : '–'}</strong>
       </div>
     </div>

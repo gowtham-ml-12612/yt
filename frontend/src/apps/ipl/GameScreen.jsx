@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { getTeam, uiColor, TEAMS } from './teams.js';
+import { getTeam, uiColor, TEAMS } from './iplTeams.js';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const MATCH_SEC = 30;
 const SUDDEN_DEATH_SEC = 10;
-const BALL_RADIUS = 17;
+const BALL_RADIUS = 23;
 const ORB_RADIUS = 6;
 const ARENA_RADIUS = 180;    // logical radius
 const GRAVITY = 0;      // no gravity — straight-line marble physics
@@ -31,52 +31,40 @@ const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const norm = (v) => { const m = Math.hypot(v.x, v.y) || 1; return { x: v.x / m, y: v.y / m }; };
 
 // ── Circular arena bounce — reflected angle always ≤ 45° from inward normal ──
-// log (optional): array to push bounce events into for debugging
-function bounceArena(ball, cx, cy, R, log) {
+// This makes wall-orbiting physically impossible: the ball always bounces
+// back toward the center at a meaningful angle, never skims tangentially.
+function bounceArena(ball, cx, cy, R) {
   const dx = ball.x - cx;
   const dy = ball.y - cy;
   const d = Math.hypot(dx, dy);
   if (d + ball.r <= R) return;
 
-  // Push back inside with 1.5px extra clearance (float safety)
+  // Push ball back inside with 1.5px extra clearance (float safety)
   const nx = dx / d, ny = dy / d;
   ball.x -= nx * (d + ball.r - R + 1.5);
   ball.y -= ny * (d + ball.r - R + 1.5);
 
-  const spd = Math.hypot(ball.vx, ball.vy) || BALL_SPEED;
   const vn = ball.vx * nx + ball.vy * ny;
+  if (vn <= 0) return; // already moving inward
 
-  // ── DEBUG log ──────────────────────────────────────────────────────────────
-  if (log) {
-    const angleDeg = Math.round(Math.atan2(dy, dx) * 180 / Math.PI);
-    log.push({
-      tick: ball._tick ?? 0,
-      x: Math.round(dx), y: Math.round(dy),
-      vxBefore: +ball.vx.toFixed(2), vyBefore: +ball.vy.toFixed(2),
-      vn: +vn.toFixed(3),
-      spd: +spd.toFixed(2),
-      angleDeg,
-      stuck: vn < 1.5,
-    });
-    if (log.length > 60) log.shift();
-  }
-  // ──────────────────────────────────────────────────────────────────────────
-
-  if (vn <= 0) return;
+  const spd = Math.hypot(ball.vx, ball.vy) || BALL_SPEED;
 
   // Tangential component (parallel to wall)
   const vtx = ball.vx - vn * nx;
   const vty = ball.vy - vn * ny;
   const vtMag = Math.hypot(vtx, vty);
 
-  // Clamp tangential so reflected angle ≤ 45° from inward normal.
-  // tan(45°) = 1  →  |vt| ≤ vn
-  const vtScale = vtMag > 0 ? Math.min(1, vn / vtMag) : 1;
+  // Clamp tangential so the reflected angle ≤ 45° from the inward normal.
+  // tan(45°) = 1, so |vt| must be ≤ vn.  Use actual vn (not clamped minimum)
+  // so the clamp is based on the real approach angle.
+  const MAX_TAN = 1.0; // tan(45°)
+  const vtScale = vtMag > 0 ? Math.min(1, (vn * MAX_TAN) / vtMag) : 1;
 
+  // Reflected velocity: invert the normal component, keep (clamped) tangential
   let rvx = -vn * nx + vtx * vtScale;
   let rvy = -vn * ny + vty * vtScale;
 
-  // Small jitter ±10° for natural variety within the safe zone
+  // Small jitter ±10° (±0.17 rad) for natural-looking variety within the safe zone
   const jitter = (Math.random() - 0.5) * 0.35;
   const cosJ = Math.cos(jitter), sinJ = Math.sin(jitter);
   ball.vx = rvx * cosJ - rvy * sinJ;
@@ -203,7 +191,7 @@ function drawOrb(ctx, orb) {
   ctx.font = `${fontSize}px serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('⚽', orb.x, orb.y + fontSize * 0.05);
+  ctx.fillText('🏏', orb.x, orb.y + fontSize * 0.05);
 }
 
 // ── Draw power-up on the arena border ────────────────────────────────────────
@@ -251,60 +239,28 @@ function drawBall(ctx, ball, tick) {
   ctx.fillStyle = 'rgba(0,0,0,0.35)';
   ctx.fill();
 
-  // Ball gradient
-  const bg = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
-  bg.addColorStop(0, lighten(ball.color, 40));
-  bg.addColorStop(0.5, ball.color);
-  bg.addColorStop(1, darken(ball.color, 40));
+  // Neutral dark background
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = bg;
+  ctx.fillStyle = '#1a2233';
   ctx.fill();
 
-  // Secondary stripe
-  ctx.save();
+  // Subtle outline
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.clip();
-  ctx.beginPath();
-  ctx.moveTo(x - r, y + r * 0.15);
-  ctx.lineTo(x + r, y - r * 0.15);
-  ctx.lineWidth = r * 0.4;
-  ctx.strokeStyle = ball.secondary + '55';
-  ctx.stroke();
-  ctx.restore();
-
-  // Outline
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
   if (ball.imageEl?.complete && ball.imageEl.naturalWidth > 0) {
     const img = ball.imageEl;
-    const imageRadius = r * 0.9;
+    const imageRadius = r * 0.94;
     const side = imageRadius * 2;
-    const imgRatio = img.naturalWidth / img.naturalHeight;
-    const boxRatio = 1;
-    let sx = 0;
-    let sy = 0;
-    let sw = img.naturalWidth;
-    let sh = img.naturalHeight;
-
-    if (imgRatio > boxRatio) {
-      sw = img.naturalHeight * boxRatio;
-      sx = (img.naturalWidth - sw) / 2;
-    } else {
-      sh = img.naturalWidth / boxRatio;
-      sy = (img.naturalHeight - sh) / 2;
-    }
-
     ctx.save();
     ctx.beginPath();
     ctx.arc(x, y, imageRadius, 0, Math.PI * 2);
     ctx.clip();
-    ctx.drawImage(img, sx, sy, sw, sh, x - side / 2, y - side / 2, side, side);
+    ctx.drawImage(img, x - side / 2, y - side / 2, side, side);
     ctx.restore();
   } else if (ball.flag) {
     ctx.font = `${Math.round(r * 0.9)}px serif`;
@@ -389,7 +345,6 @@ export default function GameScreen({ matchConfig, autoRecordStream, onAutoRecord
   const matchStartTimeoutRef = useRef(null);
   const pendingResultRef = useRef(null);
   const endAnimRef = useRef(null);
-  const bounceLogRef = useRef({ home: [], away: [] }); // debug bounce tracker
   const [scores, setScores] = useState({ home: 0, away: 0 });
   const [timeLeft, setTimeLeft] = useState(MATCH_SEC);
   const [phase, setPhase] = useState(autoMode && autoRecordStream ? 'countdown' : 'recording'); // recording | countdown | playing | sudden | ended
@@ -399,7 +354,6 @@ export default function GameScreen({ matchConfig, autoRecordStream, onAutoRecord
   const [reviewResult, setReviewResult] = useState(null);
   const [reviewReady, setReviewReady] = useState(false);
   const [reviewBusy, setReviewBusy] = useState(false);
-  const [debugSnap, setDebugSnap] = useState({ home: [], away: [] }); // snapshot for UI
 
   useEffect(() => {
     if (autoRecordStream) autoStreamRef.current = autoRecordStream;
@@ -486,7 +440,7 @@ export default function GameScreen({ matchConfig, autoRecordStream, onAutoRecord
     ctx.fillText(winner ? '🏆' : '🤝', 210, 150);
     ctx.font = '900 28px system-ui, sans-serif';
     ctx.fillStyle = winner ? uiColor(winner) : '#ffffff';
-    ctx.fillText(winner ? `${winner.flag} ${winner.name}` : 'DRAW', 210, 210);
+    ctx.fillText(winner ? winner.name : 'DRAW', 210, 210);
     ctx.font = '800 13px system-ui, sans-serif';
     ctx.fillStyle = '#d6dee3';
     ctx.fillText(winner ? 'WINS THE MATCH' : 'MATCH ENDED LEVEL', 210, 240);
@@ -533,8 +487,6 @@ export default function GameScreen({ matchConfig, autoRecordStream, onAutoRecord
     pendingResultRef.current = null;
     pendingBlobRef.current = null;
     recChunksRef.current = [];
-    bounceLogRef.current = { home: [], away: [] };
-    setDebugSnap({ home: [], away: [] });
     setScores({ home: 0, away: 0 });
     setTimeLeft(MATCH_SEC);
     setScoreFlash(null);
@@ -687,29 +639,19 @@ export default function GameScreen({ matchConfig, autoRecordStream, onAutoRecord
       }
 
       // ── Physics ──
-      gs.home._tick = gs.tick;
-      gs.away._tick = gs.tick;
       moveBall(gs.home);
       moveBall(gs.away);
       // Smooth size transition for Big Ball effect (grow and shrink)
       gs.home.r += (gs.home.targetR - gs.home.r) * 0.12;
       gs.away.r += (gs.away.targetR - gs.away.r) * 0.12;
-      bounceArena(gs.home, cx, cy, ARENA_RADIUS, bounceLogRef.current.home);
-      bounceArena(gs.away, cx, cy, ARENA_RADIUS, bounceLogRef.current.away);
+      bounceArena(gs.home, cx, cy, ARENA_RADIUS);
+      bounceArena(gs.away, cx, cy, ARENA_RADIUS);
       resolveBallCollision(gs.home, gs.away);
 
       // Ghost balls (triple power-up)
       for (const g of gs.ghosts) {
         moveBall(g);
         bounceArena(g, cx, cy, ARENA_RADIUS);
-      }
-
-      // ── Push debug snapshot to React every 60 ticks ──
-      if (gs.tick % 60 === 0) {
-        setDebugSnap({
-          home: [...bounceLogRef.current.home],
-          away: [...bounceLogRef.current.away],
-        });
       }
 
       // ── Expire effects ──
@@ -1003,7 +945,9 @@ export default function GameScreen({ matchConfig, autoRecordStream, onAutoRecord
   return (
     <div className="ball-game-shell">
       <div className="ball-game-layout">
-        <div className="ball-record-frame" ref={recordFrameRef}>
+        <div className="ball-record-frame ipl-record-16-9" ref={recordFrameRef}>
+          {/* Top black bar — fills space to make frame 9:16 */}
+          <div className="ipl-black-bar" />
           {/* Scoreboard */}
           <div className="ball-scoreboard">
             <div className="ball-score-team" style={{ color: uiColor(homeTeam) }}>
@@ -1094,6 +1038,8 @@ export default function GameScreen({ matchConfig, autoRecordStream, onAutoRecord
           {fixture.phase === 'group' && tournament?.standings?.length > 0 && (
             <MiniStandings standings={tournament.standings} highlightIds={[fixture.homeId, fixture.awayId]} name={tournament.name} />
           )}
+          {/* Bottom black bar — fills space to make frame 9:16 */}
+          <div className="ipl-black-bar" />
         </div>
 
         <aside className="ball-game-side">
@@ -1107,10 +1053,6 @@ export default function GameScreen({ matchConfig, autoRecordStream, onAutoRecord
             </div>
             <div className="ball-side-note">The center frame is recorded, including the live standings table. This right panel stays outside the saved video.</div>
           </div>
-
-          {/* ── Bounce debug panels ── */}
-          <BounceDebugPanel label={`${homeTeam.flag} ${homeTeam.name}`} color={uiColor(homeTeam)} events={debugSnap.home} />
-          <BounceDebugPanel label={`${awayTeam.flag} ${awayTeam.name}`} color={uiColor(awayTeam)} events={debugSnap.away} />
 
           {reviewMode && (
             <div className="ball-side-card ball-side-card--action">
@@ -1184,58 +1126,6 @@ function MiniStandings({ standings, highlightIds, name }) {
           })}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-// ── Bounce debug panel ────────────────────────────────────────────────────────
-function BounceDebugPanel({ label, color, events }) {
-  const text = events.length === 0
-    ? '(no bounces yet)'
-    : events.map((e) =>
-        `t=${e.tick} pos=(${e.x},${e.y}) vBefore=(${e.vxBefore},${e.vyBefore}) vn=${e.vn} spd=${e.spd} ang=${e.angleDeg}°${e.stuck ? ' ⚠️STUCK' : ''}`
-      ).join('\n');
-
-  function handleCopy() {
-    navigator.clipboard?.writeText(text).catch(() => {});
-  }
-
-  const stuckCount = events.filter((e) => e.stuck).length;
-
-  return (
-    <div className="ball-side-card" style={{ marginTop: 8 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <div className="ball-side-label" style={{ color, margin: 0 }}>
-          🔍 {label} bounces
-          {stuckCount > 0 && (
-            <span style={{ marginLeft: 6, background: '#ff4444', color: '#fff', borderRadius: 4, padding: '1px 5px', fontSize: 10 }}>
-              ⚠️ {stuckCount} stuck
-            </span>
-          )}
-        </div>
-        <button
-          onClick={handleCopy}
-          style={{
-            background: '#1e2d3d', border: '1px solid rgba(255,255,255,.15)',
-            color: '#8696a0', borderRadius: 6, padding: '3px 10px',
-            fontSize: 11, cursor: 'pointer',
-          }}
-        >
-          Copy
-        </button>
-      </div>
-      <pre style={{
-        margin: 0, fontSize: 9.5, lineHeight: 1.55,
-        color: '#8696a0', maxHeight: 180, overflowY: 'auto',
-        background: '#0a0f14', borderRadius: 6, padding: '6px 8px',
-        fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-all',
-      }}>
-        {events.length === 0 ? '(no bounces yet)' : [...events].reverse().map((e, i) => (
-          <span key={i} style={{ color: e.stuck ? '#ff6b6b' : '#8696a0' }}>
-            {`t=${e.tick} (${e.x},${e.y}) vn=${e.vn} spd=${e.spd} ${e.angleDeg}°${e.stuck ? ' ⚠️' : ''}\n`}
-          </span>
-        ))}
-      </pre>
     </div>
   );
 }

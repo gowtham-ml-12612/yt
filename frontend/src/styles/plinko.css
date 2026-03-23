@@ -1,0 +1,80 @@
+.plinko-home-shell, .plinko-game-shell {
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--bg-dark);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.plinko-header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.plinko-header-title {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.plinko-back-btn {
+  background: none;
+  border: none;
+  color: var(--primary-accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.plinko-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.plinko-hero h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.plinko-hero p {
+    color: #ccc;
+    margin-bottom: 30px;
+}
+
+.plinko-start-btn {
+  background-color: var(--primary-accent);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.plinko-canvas-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 12px;
+}
+
+.plinko-canvas-container canvas {
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
